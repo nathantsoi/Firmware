@@ -82,6 +82,28 @@ void IEKF::callback_mag(const sensor_mag_s *msg)
 void IEKF::callback_baro(const sensor_baro_s *msg)
 {
 	//ROS_INFO("baro callback %10.4f", double(msg->altitude));
+
+	// calculate residual
+	Vector<float, Y_baro::n> y;
+	y(Y_baro::asl) = msg->altitude;
+	Vector<float, Y_baro::n> yh;
+	yh(Y_baro::asl)	= -_x(X::pos_D) + _x(X::baro_bias);
+	Vector<float, Y_baro::n> r = y - yh;
+
+	// define R
+	Matrix<float, Y_baro::n, Y_baro::n> R;
+	R(Y_baro::asl, Y_baro::asl) = 1.0;
+
+	// define H
+	Matrix<float, Y_baro::n, Xe::n> H;
+	H(Xe::pos_D, Y_baro::asl) = -1;
+	H(Xe::baro_bias, Y_baro::asl) = 1;
+
+	bool fault = correct<Y_baro::n>(r, H, R);
+
+	if (fault) {
+		ROS_WARN("baro fault");
+	}
 }
 
 void IEKF::callback_attitude(const vehicle_attitude_s *msg)

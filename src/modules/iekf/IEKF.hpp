@@ -109,6 +109,29 @@ struct Y_mag {
 	static const uint8_t n = 3;
 };
 
+static const float BETA_TABLE[] = {
+	0,
+	8.82050518214,
+	12.094592431,
+	13.9876612368,
+	16.0875642296,
+	17.8797700658,
+	19.6465647819,
+	21.3802576894,
+	23.0806434845,
+	24.6673803845,
+	26.1487953661,
+	27.6350821245,
+	29.6565383703,
+	31.2211113844,
+	32.7673547211,
+	34.2967756977,
+	35.6906782236,
+	37.0724753352,
+	38.4549693067,
+	39.836592699,
+};
+
 /**
  * Main class for invariant extended kalman filter
  *
@@ -128,6 +151,34 @@ public:
 	void callback_baro(const sensor_baro_s *msg);
 	void callback_attitude(const vehicle_attitude_s *msg);
 	void predict(float dt);
+
+	/**
+	 * Measurement correction
+	 *
+	 * @param r : measurement residual, r =  y - g(x)
+	 * @param H : measurement matrix y = g(x, u), H = dg(x, u)/dx
+	 * @param R : measurement covariance matrix R = E[r^Tr]
+	 * @return : true, no fault (correction applied), false (fault detect, did not correct)
+	 **/
+	template<size_t n_y>
+	bool correct(Vector<float, n_y> &r, Matrix<float, n_y, Xe::n> &H,
+		     Matrix<float, n_y, n_y> &R)
+	{
+		SquareMatrix<float, n_y> S_I = SquareMatrix<float, n_y>(H * _P * H.T() + R).I();
+		Matrix<float, Xe::n, n_y> K = _P * H.T() * S_I;
+		float beta = (r.T() * r * S_I)(0, 0);
+		bool fault = beta > BETA_TABLE[n_y];
+
+		if (!fault) {
+			// TODO apply all correction
+			Vector<float, Xe::n> dxe = K * r;
+			_x(X::pos_D) = dxe(X::pos_D);
+			_x(X::baro_bias) = dxe(X::baro_bias);
+			_P -= K * H * _P;
+		}
+
+		return fault;
+	};
 private:
 	ros::NodeHandle _nh;
 	ros::Subscriber _sub_gyro;
