@@ -74,9 +74,9 @@ struct U {
  * Accel measurement enum
  */
 struct Y_accel {
-	static const uint8_t acc_bx = 0;
-	static const uint8_t acc_by = 1;
-	static const uint8_t acc_bz = 2;
+	static const uint8_t accel_bx = 0;
+	static const uint8_t accel_by = 1;
+	static const uint8_t accel_bz = 2;
 	static const uint8_t n = 3;
 };
 
@@ -174,6 +174,7 @@ public:
 	{
 		SquareMatrix<float, n_y> S_I = SquareMatrix<float, n_y>(H * _P * H.T() + R).I();
 		Matrix<float, Xe::n, n_y> K = _P * H.T() * S_I;
+
 		float beta = (r.T() * (S_I * r))(0, 0);
 		bool fault = beta > BETA_TABLE[n_y];
 		//ROS_INFO("beta: %10.4f, thresh: %10.4f\n", double(beta), double(BETA_TABLE[n_y]));
@@ -184,6 +185,8 @@ public:
 			Quaternion<float> q_nb(_x(X::q_nb_0), _x(X::q_nb_1), _x(X::q_nb_2), _x(X::q_nb_3));
 			Quaternion<float> d_q_nb = Quaternion<float>(0,
 						   d_xe(Xe::rot_bx), d_xe(Xe::rot_by), d_xe(Xe::rot_bz)) * q_nb;
+			//ROS_INFO("d_q_nb");
+			//d_q_nb.print();
 			Vector3<float> d_gyro_bias_b = q_nb.conjugate_inversed(
 							       Vector3<float>(d_xe(Xe::gyro_bias_n),
 									       d_xe(Xe::gyro_bias_e),

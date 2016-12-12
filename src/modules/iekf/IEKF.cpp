@@ -1,5 +1,8 @@
 #include "IEKF.hpp"
 
+static const float mag_inclination = 1.0f;
+static const float mag_declination = 0;
+
 IEKF::IEKF() :
 	_nh(), // node handle
 	_sub_gyro(_nh.subscribe("sensor_gyro", 0, &IEKF::callback_gyro, this)),
@@ -14,12 +17,22 @@ IEKF::IEKF() :
 	_P(),
 	_u(),
 	_g_n(0, 0, -9.8),
-	_B_n(0, 0, 0)
+	_B_n()
 {
-	_x.setZero();
+	// start with 0 quaternion
 	_x(X::q_nb_0) = 1;
+	_x(X::q_nb_1) = 0;
+	_x(X::q_nb_2) = 0;
+	_x(X::q_nb_3) = 0;
+
+	// start with 1 accel scale
 	_x(X::accel_scale) = 1;
+
+	// initialize covariance
 	_P.setIdentity();
+
+	// initial magnetic field guess
+	_B_n = Vector3f(0.21523, 0.00771, -0.42741);
 }
 
 Vector<float, X::n> IEKF::dynamics(const Vector<float, X::n> &x, const Vector<float, U::n> &u)
@@ -73,6 +86,34 @@ void IEKF::callback_accel(const sensor_accel_s *msg)
 	_u(U::accel_bx) = msg->x;
 	_u(U::accel_by) = msg->y;
 	_u(U::accel_bz) = msg->z;
+
+	// calculate residual
+	Quaternion<float> q_nb(_x(X::q_nb_0), _x(X::q_nb_1),
+			       _x(X::q_nb_2), _x(X::q_nb_3));
+	Vector3f y_b(msg->x, msg->y, msg->z);
+	Vector3f r = q_nb.conjugate(y_b / _x(X::accel_scale)) - _g_n;
+
+	// define R
+	Matrix<float, Y_accel::n, Y_accel::n> R;
+	R(Y_accel::accel_bx, Y_accel::accel_bx) = 1.0;
+	R(Y_accel::accel_by, Y_accel::accel_by) = 1.0;
+	R(Y_accel::accel_bz, Y_accel::accel_bz) = 1.0;
+
+	// define H
+	Matrix<float, Y_accel::n, Xe::n> H;
+	Matrix3f tmp = _g_n.hat() * 2;
+
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			H(Y_accel::accel_bx + i, Xe::rot_bx + j) = tmp(i, j);
+		}
+	}
+
+	bool fault = correct<Y_accel::n>(r, H, R);
+
+	if (fault) {
+		ROS_WARN("accel fault");
+	}
 }
 
 void IEKF::callback_mag(const sensor_mag_s *msg)
@@ -95,7 +136,13 @@ void IEKF::callback_mag(const sensor_mag_s *msg)
 
 	// define H
 	Matrix<float, Y_mag::n, Xe::n> H;
-	H.slice<3, 3>(Y_mag::mag_n, Xe::rot_bx) = _B_n.hat() * 2; // hat is skew op
+	Matrix3f tmp = B_n.hat() * 2;
+
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			H(Y_mag::mag_n + i, Xe::rot_bx + j) = tmp(i, j);
+		}
+	}
 
 	bool fault = correct<Y_mag::n>(r, H, R);
 
