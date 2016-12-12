@@ -167,7 +167,7 @@ class RIEKF(object):
 
         # measurement matrix
         H = np.zeros((Y_mag.n, Xe.n))
-        H[Y_mag.bx:Y_mag.bz + 1, Xe.rot_bx:Xe.rot_bz + 1] = 2*skew(B_n_unit)
+        H[Y_mag.nx:Y_mag.nz + 1, Xe.rot_bx:Xe.rot_bz + 1] = 2*skew(B_n_unit)
 
         # measurement covariance matrix
         R = np.diag([params['MAG_NE'],

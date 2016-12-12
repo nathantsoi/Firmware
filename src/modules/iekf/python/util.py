@@ -138,9 +138,9 @@ class Y_mag(object):
     """
     Magnetometer measurement
     """
-    bx = 0
-    by = 1
-    bz = 2
+    nx = 0
+    ny = 1
+    nz = 2
     n = 3
 
 
