@@ -90,7 +90,7 @@ struct Y_gps {
 	static const uint8_t vel_n = 3;
 	static const uint8_t vel_e = 4;
 	static const uint8_t vel_d = 5;
-	static const uint8_t n;
+	static const uint8_t n = 6;
 };
 
 /**
@@ -157,7 +157,7 @@ public:
 	void callback_accel(const sensor_accel_s *msg);
 	void callback_mag(const sensor_mag_s *msg);
 	void callback_baro(const sensor_baro_s *msg);
-	void callback_attitude(const vehicle_attitude_s *msg);
+	void callback_gps(const vehicle_gps_position_s *msg);
 	void predict(float dt);
 
 	/**

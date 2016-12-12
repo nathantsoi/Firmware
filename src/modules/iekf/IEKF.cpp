@@ -9,7 +9,6 @@ IEKF::IEKF() :
 	_sub_accel(_nh.subscribe("sensor_accel", 0, &IEKF::callback_accel, this)),
 	_sub_mag(_nh.subscribe("sensor_mag", 0, &IEKF::callback_mag, this)),
 	_sub_baro(_nh.subscribe("sensor_baro", 0, &IEKF::callback_baro, this)),
-	_sub_attitude(_nh.subscribe("vehicle_attitude", 0, &IEKF::callback_attitude, this)),
 	_pub_attitude(_nh.advertise<vehicle_attitude_s>("vehicle_attitude", 0)),
 	_pub_local_position(_nh.advertise<vehicle_local_position_s>("vehicle_local_position", 0)),
 	_pub_global_position(_nh.advertise<vehicle_global_position_s>("vehicle_global_position", 0)),
@@ -178,14 +177,54 @@ void IEKF::callback_baro(const sensor_baro_s *msg)
 	}
 }
 
-void IEKF::callback_attitude(const vehicle_attitude_s *msg)
+void IEKF::callback_gps(const vehicle_gps_position_s *msg)
 {
-	//ROS_INFO("attitude callback q_nb: %10.4f %10.4f %10.4f %10.4f",
-	//double(msg->q[0]), double(msg->q[1]),
-	//double(msg->q[2]), double(msg->q[3]));
+	//ROS_INFO("baro callback %10.4f", double(msg->altitude));
+
+	// calculate residual
+	Vector<float, Y_gps::n> y;
+	// TODO global ref init
+	y(Y_gps::pos_n) = 0;
+	y(Y_gps::pos_e) = 0;
+	y(Y_gps::pos_d) = 0;
+	y(Y_gps::vel_n) = 0;
+	y(Y_gps::vel_e) = 0;
+	y(Y_gps::vel_d) = 0;
+
+	Vector<float, Y_gps::n> yh;
+	yh(Y_gps::pos_n) = _x(X::pos_n);
+	yh(Y_gps::pos_e) = _x(X::pos_e);
+	yh(Y_gps::pos_d) = _x(X::pos_d);
+	yh(Y_gps::vel_n) = _x(X::vel_n);
+	yh(Y_gps::vel_e) = _x(X::vel_e);
+	yh(Y_gps::vel_d) = _x(X::vel_d);
+
+	Vector<float, Y_gps::n> r = y - yh;
+
+	// define R
+	Matrix<float, Y_gps::n, Y_gps::n> R;
+	R(Y_gps::pos_n, Y_gps::pos_n) = 1.0f;
+	R(Y_gps::pos_e, Y_gps::pos_e) = 1.0f;
+	R(Y_gps::pos_d, Y_gps::pos_d) = 1.0f;
+	R(Y_gps::vel_n, Y_gps::vel_n) = 1.0f;
+	R(Y_gps::vel_e, Y_gps::vel_e) = 1.0f;
+	R(Y_gps::vel_d, Y_gps::vel_d) = 1.0f;
+
+	// define H
+	Matrix<float, Y_gps::n, Xe::n> H;
+	H(Y_gps::pos_n, Xe::pos_n) = 1;
+	H(Y_gps::pos_e, Xe::pos_e) = 1;
+	H(Y_gps::pos_d, Xe::pos_d) = 1;
+	H(Y_gps::vel_n, Xe::vel_n) = 1;
+	H(Y_gps::vel_e, Xe::vel_e) = 1;
+	H(Y_gps::vel_d, Xe::vel_d) = 1;
+
+	bool fault = correct<Y_gps::n>(r, H, R);
+
+	if (fault) {
+		ROS_WARN("gps fault");
+	}
 }
-
-
 
 void IEKF::predict(float dt)
 {
