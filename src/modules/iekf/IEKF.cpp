@@ -96,8 +96,8 @@ void IEKF::callback_baro(const sensor_baro_s *msg)
 
 	// define H
 	Matrix<float, Y_baro::n, Xe::n> H;
-	H(Xe::pos_D, Y_baro::asl) = -1;
-	H(Xe::baro_bias, Y_baro::asl) = 1;
+	H(Y_baro::asl, Xe::pos_D) = -1;
+	H(Y_baro::asl, Xe::baro_bias) = 1;
 
 	bool fault = correct<Y_baro::n>(r, H, R);
 

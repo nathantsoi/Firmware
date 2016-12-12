@@ -168,17 +168,28 @@ public:
 		Matrix<float, Xe::n, n_y> K = _P * H.T() * S_I;
 		float beta = (r.T() * r * S_I)(0, 0);
 		bool fault = beta > BETA_TABLE[n_y];
+		//ROS_INFO("beta: %10.4f, thresh: %10.4f\n", double(beta), double(BETA_TABLE[n_y]));
 
 		if (!fault) {
 			// TODO apply all correction
 			Vector<float, Xe::n> dxe = K * r;
-			_x(X::pos_D) = dxe(X::pos_D);
-			_x(X::baro_bias) = dxe(X::baro_bias);
+
+			// linear term correction is the same
+			// as the error correction
+			_x(X::vel_N) += dxe(Xe::vel_N);
+			_x(X::vel_E) += dxe(Xe::vel_E);
+			_x(X::vel_D) += dxe(Xe::vel_D);
+			_x(X::pos_N) += dxe(Xe::pos_N);
+			_x(X::pos_E) += dxe(Xe::pos_E);
+			_x(X::pos_D) += dxe(Xe::pos_D);
+			_x(X::terrain_alt) += dxe(Xe::terrain_alt);
+			_x(X::baro_bias) += dxe(Xe::baro_bias);
 			_P -= K * H * _P;
 		}
 
 		return fault;
 	};
+
 private:
 	ros::NodeHandle _nh;
 	ros::Subscriber _sub_gyro;
