@@ -268,6 +268,7 @@ if (CATKIN_DEVEL_PREFIX)
 	endif()
 endif()
 
+set(ENV{PYTHONPATH} ${PYTHON_PATH})
 find_package(PythonInterp REQUIRED)
 px4_find_python_module(jinja2 REQUIRED)
 

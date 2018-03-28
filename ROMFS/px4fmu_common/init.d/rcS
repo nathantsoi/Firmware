@@ -13,6 +13,11 @@ set +e
 #
 # NOTE: COMMENT LINES ARE REMOVED BEFORE STORED IN ROMFS.
 #
+# UART mapping on OMNIBUSF4SD:
+#
+# USART1		/dev/ttyS0		TELEM1 (flow control)
+# USART6		/dev/ttyS1		GPS
+#
 # UART mapping on FMUv2/3/4:
 #
 # UART1			/dev/ttyS0		IO debug (except v4, there ttyS0 is the wifi)
@@ -229,6 +234,12 @@ then
 		set MAVLINK_COMPANION_DEVICE /dev/ttyS4
 	fi
 
+	if ver hwcmp PX4_OMNIBUSF4SD
+	then
+		param set SYS_FMU_TASK 1
+		set MAVLINK_COMPANION_DEVICE /dev/ttyS0
+	fi
+
 	#
 	# Set USE_IO flag
 	#
@@ -281,8 +292,8 @@ then
 	#
 	if [ $AUTOCNF == yes ]
 	then
-		# Disable safety switch by default on Pixracer
-		if ver hwcmp PX4FMU_V4
+		# Disable safety switch by default on Pixracer and OmnibusF4SD
+		if ver hwcmp PX4FMU_V4 PX4_OMNIBUSF4SD
 		then
 			param set CBRK_IO_SAFETY 22027
 		fi
@@ -412,7 +423,6 @@ then
 		sh /etc/init.d/rc.sensors
 		commander start
 	fi
-
 	send_event start
 	load_mon start
 
@@ -573,12 +583,12 @@ then
 			fi
 		fi
 
-		if ver hwcmp CRAZYFLIE
+		if ver hwcmp CRAZYFLIE PX4_OMNIBUSF4SD
 		then
 			# Avoid using either of the two available serials
 			set MAVLINK_F none
 		fi
-	fi
+fi
 
 	if [ "x$MAVLINK_F" == xnone ]
 	then
@@ -707,7 +717,7 @@ then
 		fi
 	fi
 
-	if ver hwcmp PX4FMU_V2 PX4FMU_V4 PX4FMU_V4PRO MINDPX_V2 PX4FMU_V5
+	if ver hwcmp PX4FMU_V2 PX4FMU_V4 PX4FMU_V4PRO MINDPX_V2 PX4FMU_V5 PX4_OMNIBUSF4SD
 	then
 		# Check for flow sensor - as it is a background task, launch it last
 		px4flow start &
