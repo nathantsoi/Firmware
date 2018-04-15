@@ -3,7 +3,7 @@
 # Standard startup script for sensor drivers.
 #
 
-if ver hwcmp AEROFC_V1 PX4_OMNIBUSF4SD
+if ver hwcmp AEROFC_V1 OMNIBUS_F4SD
 then
 	# Aero FC uses separate driver
 else
@@ -267,7 +267,7 @@ then
 	ll40ls start i2c
 fi
 
-if ver hwcmp PX4_OMNIBUSF4SD
+if ver hwcmp OMNIBUS_F4SD
 then
 	mpu6000 -s start
 
