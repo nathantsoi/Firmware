@@ -234,7 +234,7 @@ then
 		set MAVLINK_COMPANION_DEVICE /dev/ttyS4
 	fi
 
-	if ver hwcmp PX4_OMNIBUSF4SD
+	if ver hwcmp OMNIBUS_F4SD
 	then
 		param set SYS_FMU_TASK 1
 		set MAVLINK_COMPANION_DEVICE /dev/ttyS0
@@ -293,7 +293,7 @@ then
 	if [ $AUTOCNF == yes ]
 	then
 		# Disable safety switch by default on Pixracer and OmnibusF4SD
-		if ver hwcmp PX4FMU_V4 PX4_OMNIBUSF4SD
+		if ver hwcmp PX4FMU_V4 OMNIBUS_F4SD
 		then
 			param set CBRK_IO_SAFETY 22027
 		fi
@@ -583,7 +583,7 @@ then
 			fi
 		fi
 
-		if ver hwcmp CRAZYFLIE PX4_OMNIBUSF4SD
+		if ver hwcmp CRAZYFLIE OMNIBUS_F4SD
 		then
 			# Avoid using either of the two available serials
 			set MAVLINK_F none
@@ -717,7 +717,7 @@ fi
 		fi
 	fi
 
-	if ver hwcmp PX4FMU_V2 PX4FMU_V4 PX4FMU_V4PRO MINDPX_V2 PX4FMU_V5 PX4_OMNIBUSF4SD
+	if ver hwcmp PX4FMU_V2 PX4FMU_V4 PX4FMU_V4PRO MINDPX_V2 PX4FMU_V5 OMNIBUS_F4SD
 	then
 		# Check for flow sensor - as it is a background task, launch it last
 		px4flow start &
