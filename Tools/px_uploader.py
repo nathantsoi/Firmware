@@ -324,7 +324,7 @@ class uploader(object):
         length = self.__recv_int()
         value = self.__recv(length)
         self.__getSync()
-        peices = value.split(",")
+        peices = str(value).split(",")
         return peices
 
     def __drawProgressBar(self, label, progress, maxVal):
