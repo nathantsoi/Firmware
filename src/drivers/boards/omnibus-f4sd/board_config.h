@@ -248,13 +248,13 @@
 #define BOARD_HAS_PWM    DIRECT_PWM_OUTPUT_CHANNELS
 
 /* High-resolution timer */
-#define HRT_TIMER		8	/* use timer8 for the HRT */
-#define HRT_TIMER_CHANNEL	3	/* use capture/compare channel */
+#define HRT_TIMER                    4 // T4C1
+#define HRT_TIMER_CHANNEL            1 // use capture/compare channel 1
 
-#define HRT_PPM_CHANNEL              1
+#define HRT_PPM_CHANNEL              3 // capture/compare channel 3
 #define GPIO_PPM_IN                  (GPIO_ALT|GPIO_AF2|GPIO_PULLUP|GPIO_PORTB|GPIO_PIN8)
 
-#define RC_SERIAL_PORT               "/dev/ttyS0"
+//#define RC_SERIAL_PORT               "/dev/ttyS0"
 
 /*
  * One RC_IN
