@@ -234,12 +234,6 @@ then
 		set MAVLINK_COMPANION_DEVICE /dev/ttyS4
 	fi
 
-	if ver hwcmp OMNIBUS_F4SD
-	then
-		param set SYS_FMU_TASK 1
-		set MAVLINK_COMPANION_DEVICE /dev/ttyS0
-	fi
-
 	#
 	# Set USE_IO flag
 	#
