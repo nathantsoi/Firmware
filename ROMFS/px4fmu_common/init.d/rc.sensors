@@ -269,7 +269,7 @@ fi
 
 if ver hwcmp OMNIBUS_F4SD
 then
-	mpu6000 -s start
+	mpu6000 -R 12 -s start
 
 	# Possible external compasses
 	hmc5883 -X start
