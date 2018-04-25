@@ -258,6 +258,18 @@
 /* USART1 require a RX DMA configuration */
 #define DMAMAP_USART1_RX DMAMAP_USART1_RX_2
 
+/* USART3:
+ *
+ * PC10 (TX) and PC11 (RX) are broken out on J4
+ *
+ * Alternatively, this port could be maped to SPI3
+ *
+ * The Silkscreen pin labeled SCL is TX
+ *                           MISO is RX
+ */
+#define GPIO_USART3_RX	GPIO_USART3_RX_2
+#define GPIO_USART3_TX	GPIO_USART3_TX_2
+
 /* UART6:
  *
  * PC6 (TX) and PC7 (RX) are broken out on J10

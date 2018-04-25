@@ -62,7 +62,7 @@
 /* GPS
  * UART6
  */
-#define GPS_DEFAULT_UART_PORT	"/dev/ttyS1"
+#define GPS_DEFAULT_UART_PORT	"/dev/ttyS2"
 
 /*
  * ADC channels
@@ -253,7 +253,7 @@
 #define HRT_PPM_CHANNEL              3 // capture/compare channel 3
 #define GPIO_PPM_IN                  (GPIO_ALT|GPIO_AF2|GPIO_PULLUP|GPIO_PORTB|GPIO_PIN8)
 
-//#define RC_SERIAL_PORT               "/dev/ttyS0"
+#define RC_SERIAL_PORT               "/dev/ttyS0"
 
 /*
  * One RC_IN

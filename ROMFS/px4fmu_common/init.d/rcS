@@ -15,8 +15,9 @@ set +e
 #
 # UART mapping on OMNIBUSF4SD:
 #
-# USART1		/dev/ttyS0		TELEM1 (flow control)
-# USART6		/dev/ttyS1		GPS
+# USART1		/dev/ttyS0		SerialRX
+# USART3		/dev/ttyS1		TELEM1
+# USART6		/dev/ttyS2		GPS
 #
 # UART mapping on FMUv2/3/4:
 #
@@ -232,6 +233,11 @@ then
 	then
 		param set SYS_FMU_TASK 1
 		set MAVLINK_COMPANION_DEVICE /dev/ttyS4
+	fi
+
+	if ver hwcmp OMNIBUS_F4SD
+	then
+		set MAVLINK_COMPANION_DEVICE /dev/ttyS1
 	fi
 
 	#
