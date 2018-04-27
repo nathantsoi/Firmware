@@ -412,6 +412,13 @@ FixedwingPositionControl::vehicle_attitude_poll()
 	/* set rotation matrix and euler angles */
 	_R_nb = Quatf(_att.q);
 
+	// if the vehicle is a tailsitter we have to rotate the attitude by the pitch offset
+	// between multirotor and fixed wing flight
+	if (_parameters.vtol_type == vtol_type::TAILSITTER && _vehicle_status.is_vtol) {
+		Dcmf R_offset = Eulerf(0, M_PI_2_F, 0);
+		_R_nb = _R_nb * R_offset;
+	}
+
 	Eulerf euler_angles(_R_nb);
 	_roll    = euler_angles(0);
 	_pitch   = euler_angles(1);
@@ -1307,8 +1314,13 @@ FixedwingPositionControl::control_landing(const Vector2f &curr_pos, const Vector
 		_fw_pos_ctrl_status.abort_landing = false;
 	}
 
-	float bearing_lastwp_currwp = get_bearing_to_next_waypoint(prev_wp(0), prev_wp(1), curr_wp(0), curr_wp(1));
-	float bearing_airplane_currwp = get_bearing_to_next_waypoint(curr_pos(0), curr_pos(1), curr_wp(0), curr_wp(1));
+	const float bearing_airplane_currwp = get_bearing_to_next_waypoint(curr_pos(0), curr_pos(1), curr_wp(0), curr_wp(1));
+
+	float bearing_lastwp_currwp = bearing_airplane_currwp;
+
+	if (pos_sp_prev.valid) {
+		bearing_lastwp_currwp = get_bearing_to_next_waypoint(prev_wp(0), prev_wp(1), curr_wp(0), curr_wp(1));
+	}
 
 	/* Horizontal landing control */
 	/* switch to heading hold for the last meters, continue heading hold after */
@@ -1410,16 +1422,6 @@ FixedwingPositionControl::control_landing(const Vector2f &curr_pos, const Vector
 		}
 	}
 
-	/* Calculate distance (to landing waypoint) and altitude of last ordinary waypoint L */
-	float L_altitude_rel = 0.0f;
-
-	if (pos_sp_prev.valid) {
-		L_altitude_rel = pos_sp_prev.alt - terrain_alt;
-	}
-
-	float landing_slope_alt_rel_desired = _landingslope.getLandingSlopeRelativeAltitudeSave(wp_distance,
-					      bearing_lastwp_currwp, bearing_airplane_currwp);
-
 	/* Check if we should start flaring with a vertical and a
 	 * horizontal limit (with some tolerance)
 	 * The horizontal limit is only applied when we are in front of the wp
@@ -1503,11 +1505,15 @@ FixedwingPositionControl::control_landing(const Vector2f &curr_pos, const Vector
 		 * if current position is below the slope continue at previous wp altitude
 		 * until the intersection with slope
 		 * */
-		float altitude_desired_rel{0.0f};
+
+		float altitude_desired = terrain_alt;
+
+		const float landing_slope_alt_rel_desired = _landingslope.getLandingSlopeRelativeAltitudeSave(wp_distance,
+				bearing_lastwp_currwp, bearing_airplane_currwp);
 
 		if (_global_pos.alt > terrain_alt + landing_slope_alt_rel_desired || _land_onslope) {
 			/* stay on slope */
-			altitude_desired_rel = landing_slope_alt_rel_desired;
+			altitude_desired = terrain_alt + landing_slope_alt_rel_desired;
 
 			if (!_land_onslope) {
 				mavlink_log_info(&_mavlink_log_pub, "Landing, on slope");
@@ -1517,16 +1523,16 @@ FixedwingPositionControl::control_landing(const Vector2f &curr_pos, const Vector
 		} else {
 			/* continue horizontally */
 			if (pos_sp_prev.valid) {
-				altitude_desired_rel = L_altitude_rel;
+				altitude_desired = pos_sp_prev.alt;
 
 			} else {
-				altitude_desired_rel = _global_pos.alt - terrain_alt;
+				altitude_desired = _global_pos.alt;
 			}
 		}
 
 		const float airspeed_approach = _parameters.land_airspeed_scale * _parameters.airspeed_min;
 
-		tecs_update_pitch_throttle(terrain_alt + altitude_desired_rel,
+		tecs_update_pitch_throttle(altitude_desired,
 					   calculate_target_airspeed(airspeed_approach),
 					   radians(_parameters.pitch_limit_min),
 					   radians(_parameters.pitch_limit_max),
@@ -1878,14 +1884,6 @@ FixedwingPositionControl::tecs_update_pitch_throttle(float alt_sp, float airspee
 	/* Using tecs library */
 	float pitch_for_tecs = _pitch - _parameters.pitchsp_offset_rad;
 
-	// if the vehicle is a tailsitter we have to rotate the attitude by the pitch offset
-	// between multirotor and fixed wing flight
-	if (_parameters.vtol_type == vtol_type::TAILSITTER && _vehicle_status.is_vtol) {
-		Dcmf R_offset = Eulerf(0, M_PI_2_F, 0);
-		Eulerf euler = Eulerf(_R_nb * R_offset);
-		pitch_for_tecs = euler(1);
-	}
-
 	/* filter speed and altitude for controller */
 	Vector3f accel_body(_sub_sensors.get().accel_x, _sub_sensors.get().accel_y, _sub_sensors.get().accel_z);
 
@@ -1919,7 +1917,7 @@ FixedwingPositionControl::tecs_update_pitch_throttle(float alt_sp, float airspee
 		if (orb_copy(ORB_ID(sensor_baro), _sensor_baro_sub, &baro) == PX4_OK) {
 			if (PX4_ISFINITE(baro.pressure) && PX4_ISFINITE(_parameters.throttle_alt_scale)) {
 				// scale throttle as a function of sqrt(p0/p) (~ EAS -> TAS at low speeds and altitudes ignoring temperature)
-				const float eas2tas = sqrtf(MSL_PRESSURE_MILLIBAR / baro.pressure);
+				const float eas2tas = sqrtf(CONSTANTS_STD_PRESSURE_MBAR / baro.pressure);
 				const float scale = constrain((eas2tas - 1.0f) * _parameters.throttle_alt_scale + 1.0f, 1.0f, 2.0f);
 
 				throttle_max = constrain(throttle_max * scale, throttle_min, 1.0f);

@@ -424,7 +424,6 @@ MulticopterAttitudeControl::control_attitude(float dt)
 	 * because it's the rotation axis for body yaw and multiply it by the rate and gain. */
 	Vector3f yaw_feedforward_rate = q.inversed().dcm_z();
 	yaw_feedforward_rate *= _v_att_sp.yaw_sp_move_rate * _yaw_ff.get();
-	yaw_feedforward_rate(2) *= yaw_w;
 	_rates_sp += yaw_feedforward_rate;
 
 
@@ -705,9 +704,9 @@ MulticopterAttitudeControl::run()
 				if (_v_control_mode.flag_control_manual_enabled) {
 					/* manual rates control - ACRO mode */
 					Vector3f man_rate_sp(
-							math::superexpo(_manual_control_sp.y, _acro_expo.get(), _acro_superexpo.get()),
-							math::superexpo(-_manual_control_sp.x, _acro_expo.get(), _acro_superexpo.get()),
-							math::superexpo(_manual_control_sp.r, _acro_expo.get(), _acro_superexpo.get()));
+							math::superexpo(_manual_control_sp.y, _acro_expo_rp.get(), _acro_superexpo_rp.get()),
+							math::superexpo(-_manual_control_sp.x, _acro_expo_rp.get(), _acro_superexpo_rp.get()),
+							math::superexpo(_manual_control_sp.r, _acro_expo_y.get(), _acro_superexpo_y.get()));
 					_rates_sp = man_rate_sp.emult(_acro_rate_max);
 					_thrust_sp = _manual_control_sp.z;
 
