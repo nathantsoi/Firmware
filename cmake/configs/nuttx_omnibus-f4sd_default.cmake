@@ -43,19 +43,19 @@ set(config_module_list
 	#
 	systemcmds/bl_update
 	systemcmds/config
-	systemcmds/dumpfile
-	systemcmds/esc_calib
+	#systemcmds/dumpfile
+	#systemcmds/esc_calib
 	systemcmds/hardfault_log
 	systemcmds/led_control
 	systemcmds/mixer
-	systemcmds/motor_ramp
-	systemcmds/mtd
+	#systemcmds/motor_ramp
+	#systemcmds/mtd
 	systemcmds/nshterm
 	systemcmds/param
 	systemcmds/perf
 	systemcmds/pwm
 	systemcmds/reboot
-	systemcmds/sd_bench
+	#systemcmds/sd_bench
 	systemcmds/top
 	systemcmds/topic_listener
 	systemcmds/tune_control
@@ -90,10 +90,10 @@ set(config_module_list
 	#
 	# Estimation modules
 	#
-	#modules/attitude_estimator_q
+	modules/attitude_estimator_q
 	modules/ekf2
 	modules/landing_target_estimator
-	#modules/local_position_estimator
+	modules/local_position_estimator
 	#modules/position_estimator_inav
 	modules/wind_estimator
 
