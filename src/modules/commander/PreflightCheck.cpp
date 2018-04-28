@@ -717,7 +717,7 @@ bool preflightCheck(orb_advert_t *mavlink_log_pub, const vehicle_status_s &statu
 
 		/* check all sensors, but fail only for mandatory ones */
 		for (unsigned i = 0; i < max_optional_mag_count; i++) {
-			bool required = (i < max_mandatory_mag_count);
+			bool required = false;
 			int device_id = -1;
 
 			if (!magnometerCheck(mavlink_log_pub, i, !required, device_id, (reportFailures && !failed && !mag_fail_reported)) && required) {
