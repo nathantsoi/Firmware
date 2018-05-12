@@ -10,20 +10,15 @@ set(config_module_list
 	drivers/barometer/bmp280
 	#drivers/differential_pressure
 	#drivers/distance_sensor
-	drivers/led
 	drivers/magnetometer/hmc5883
 	drivers/telemetry/frsky_telemetry
 	drivers/imu/mpu6000
 
-	#drivers/airspeed
 	#drivers/batt_smbus
 	#drivers/blinkm
-	drivers/boards
 	#drivers/camera_trigger
-	drivers/device
 	drivers/gps
 	#drivers/irlock
-	#drivers/led
 	#drivers/mkblctrl
 	#drivers/oreoled
 	#drivers/pca9685
@@ -117,26 +112,7 @@ set(config_module_list
 	#
 	# Library modules
 	#
-	modules/systemlib/param
-	modules/systemlib
-	modules/uORB
 	modules/dataman
-
-	#
-	# Libraries
-	#
-	lib/controllib
-	lib/conversion
-	lib/DriverFramework/framework
-	lib/ecl
-	lib/led
-	lib/mathlib
-	lib/mixer
-	lib/rc
-	lib/terrain_estimation
-	lib/tunes
-	lib/version
-	lib/FlightTasks
 
 	##
 	## OBC challenge
