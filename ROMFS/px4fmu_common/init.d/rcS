@@ -16,7 +16,7 @@ set +e
 # UART mapping on OMNIBUSF4SD:
 #
 # USART1		/dev/ttyS0		SerialRX
-# USART3		/dev/ttyS1		TELEM1
+# USART4		/dev/ttyS1		TELEM1
 # USART6		/dev/ttyS2		GPS
 #
 # UART mapping on FMUv2/3/4:

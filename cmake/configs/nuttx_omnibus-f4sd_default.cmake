@@ -23,7 +23,7 @@ set(config_module_list
 	#drivers/oreoled
 	#drivers/pca9685
 	#drivers/pwm_input
-	#drivers/px4flow
+	drivers/px4flow
 	drivers/px4fmu
 	drivers/rgbled
 	drivers/stm32
